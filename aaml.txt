@@ -1,0 +1,163 @@
+
+----
+from Bio.Phylo.PAML import codeml
+import os
+from os import listdir
+import numpy as np
+import Bio.SeqIO as SeqIO
+from os import listdir
+from os.path import isfile, join
+import Bio.AlignIO as AlignIO
+import os
+import shutil
+import re
+----
+
+----
+Species = ["panTro5", "gorGor5", "ponAbe2", "nomLeu3", "rheMac8", "cerAty1", "papAnu3", "chlSab2", "manLeu1", "nasLar1", "colAng1", "rhiRox1", "calJac3", "saiBol1", "cebCap1", "aotNan1", "tarSyr2", "proCoq1", "eulMac1", "otoGar3", "mm10", "canFam3"]
+----
+----
+def file_len(fname):
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+----
+----
+N = 1
+genesmissingspecies = []
+genesmissing11ormorespecies = []
+for filename in os.listdir("./20000_Proteins_50Threshold/"):
+    with open("./20000_Proteins_50Threshold/" + filename, "r+") as filein:
+        b = file_len("./20000_Proteins_50Threshold/" + filename)
+        if b < 46:
+                genesmissingspecies.append(filename)
+----
+----
+print (len(genesmissingspecies))
+print (len(genesmissing11ormorespecies))
+----
+----
+newpresentfiles = [g for g in listdir("./20000_Proteins_50Threshold/") if isfile(join("./20000_Proteins_50Threshold/", g))]
+----
+----
+count = 0
+cml = codeml.Codeml()
+for f in newpresentfiles: 
+    if f in genesmissingspecies:
+        cml.working_dir = r"C:\Users\brian\Documents\dataset\Notebooks"
+        cml.read_ctl_file("aaml_Python.ctl")
+        cml.alignment = "./20000_Proteins_50Threshold/" + f
+        cml.tree = "./GeneTrees50Threshold/" + f + "_Tree"
+        cml.out_file = "results.out"
+        cml.run(verbose=True)
+        with open("results.out", 'r+') as c: 
+            for line in c: 
+                if "hg38:" in line: 
+                    d = open("PAMLoutput.out", "a+")
+                    d.write(f + '\t' + line)
+                    d.close()
+----
+----
+for gene in genesmissingspecies:
+    with open("./GeneTrees50Threshold/" + gene + "_Tree", "r") as f:
+        for line in f: 
+            for animal in Species: 
+                if animal in tree: 
+                    if animal in f: 
+                        print (gene + " " + animal)
+----
+----
+count = 0
+cml = codeml.Codeml()
+for f in newpresentfiles: 
+    if f not in genesmissingspecies:
+        cml.working_dir = r"C:\Users\brian\Documents\dataset\Notebooks"
+        cml.read_ctl_file("aaml_Python.ctl")
+        cml.alignment = "./20000_Proteins_50Threshold/" + f
+        cml.tree = "aaml_tree_23.txt"
+        cml.out_file = "results.out"
+        cml.run(verbose=True)
+        with open("results.out", 'r+') as c: 
+            for line in c: 
+                if "hg38:" in line: 
+                    d = open("PAMLoutput.out", "a+")
+                    d.write(f + '\t' + line)
+                    d.close()
+----
+----
+----
+def replace_all(text, dic):
+    for i, j in dic.items():
+        text = text.replace(i, j)
+    return text
+----
+
+
++*In[3]:*+
+[source, ipython3]
+----
+namestocommon = dict()
+namestocommon["hg38"] = "Human"
+namestocommon["panTro5"] = "Chimp"
+namestocommon["gorGor5"] = "Gorilla"
+namestocommon["ponAbe2"] = "Orangutan"
+namestocommon["nomLeu3"] = "Gibbon"
+namestocommon["rheMac8"] = "Rhesus_Macaque"
+namestocommon["cerAty1"] = "Sooty_Mangabey"
+namestocommon["papAnu3"] = "Baboon"
+namestocommon["chlSab2"] = "Green_Monkey"
+namestocommon["manLeu1"] = "Mandrill"
+namestocommon["nasLar1"] = "Proboscis_Monkey"
+namestocommon["colAng1"] = "Colobus"
+namestocommon["rhiRox1"] = "Golden_Snubnose"
+namestocommon["calJac3"] = "Marmoset"
+namestocommon["saiBol1"] = "Squirrel_Monkey"
+namestocommon["cebCap1"] = "Sapajou"
+namestocommon["aotNan1"] = "Mas_Night_Monkey"
+namestocommon["tarSyr2"] = "Tarsier"
+namestocommon["proCoq1"] = "Sifaka"
+namestocommon["eulMac1"] = "Black_Lemur"
+namestocommon["otoGar3"] = "Bushbaby"
+namestocommon["mm10"] = "Mouse"
+namestocommon["canFam3"] = "Dog"
+with open("PAMLoutput.out", "r") as fin: 
+     with open("AllGeneTrees2_3.txt", "w+") as fout: 
+        for line in fin:
+            a = replace_all(line, namestocommon)
+            fout.write(a)
+----
+----
+N = 1
+Everything = dict()
+with open("AllGeneTrees2_3.txt", "r") as fin: 
+    with open("AllGeneTrees2_3_1.txt", "w+") as fout: 
+        for line in fin: 
+            a = line.rsplit("\t")
+            if a[0] not in Everything: 
+                Everything[a[0]] = a[1]
+----
+count = 0
+missing = []
+for a in newpresentfiles:  
+     with open("./20000_Proteins_50Threshold/" + a, "r") as f: 
+        b = file_len("./20000_Proteins_50Threshold/" + a)
+        if b <= 24:
+            missing.append(a)
+----
+genes = []
+count1 = 0
+with open("AllGeneTrees2_3_1.txt", "r") as fin:
+    with open("testingremoving80percent.txt", "w+") as fout:
+        for line in fin:
+            a = (line.count("0.000004"))
+            if a >= 32:
+                if line not in genes: 
+                    genes.append(line)
+----
+with open("AllGeneTrees2_3_1.txt", "r") as fin:
+    with open("removing80percent.txt", "w+") as fout:
+        for line in fin: 
+            if line not in genes: 
+                fout.write(line)
+----

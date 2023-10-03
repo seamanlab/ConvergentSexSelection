@@ -1,0 +1,114 @@
+
+----
+import numpy as np
+import Bio.SeqIO as SeqIO
+from os import listdir
+from os.path import isfile, join
+import Bio.AlignIO as AlignIO
+import os
+import shutil
+----
+----
+GeneKeys = []
+with open("../New folder/Genes_IDs.txt") as f:
+    for line in f:
+        x = line.split()
+        GeneKeys.append(x)
+----
+----
+CleanGeneKeys = []
+for line in GeneKeys:
+    a = []
+    for b in line:
+        c = b.replace(",", "")
+        a.append(c)
+    CleanGeneKeys.append(a)
+----
+----
+presentfiles = [f for f in listdir("../New folder/OneByOne/") if isfile(join("../New folder/OneByOne/",f))]
+----
+----
+presentfiles = set(presentfiles)
+----
+----
+AlignIDLenths = {}
+for line in CleanGeneKeys:
+    a = line[0]
+    b = line[1:]
+    for c in b:
+        d = (c + "_30")
+        max_residue_length = []
+        if d in presentfiles:
+            residueLengths = []
+            seqs = AlignIO.read("../New folder/OneByOne/" + d, 'fasta')
+            for entry in seqs:
+                x = len(str(entry.seq))
+                residueLengths.append(x)
+            y = (max(residueLengths))
+            AlignIDLenths.update({c:y})
+----
+----
+----
+----
+----
+thelistset = set(thelist)
+----
+
+----
+goodvalues = thelistset.intersection(presentfiles)
+----
+CleanGeneKeysLengths = []
+
+for line in CleanGeneKeys:
+    newEntry = []
+    newEntry.append(line[0])
+    for a in line[1:]:
+        if a in AlignIDLenths:
+            b = AlignIDLenths[a]
+            c = (a, b)
+            newEntry.append(c)
+    CleanGeneKeysLengths.append(newEntry)
+            
+----
+----
+SummarizedCGK = []
+for line in CleanGeneKeysLengths:
+    if len(line) > 1:
+        SummarizedCGK.append(line)
+----
+----
+print(len(SummarizedCGK))
+### use this to pull out the longest alginment file (in the tupple) and then move that alignment file to a new folder with
+### the gene name that it corresponds to.
+----
+----
+SummarizedCGKArray = np.asarray(SummarizedCGK)
+np.savetxt("SummarizedGeneID_withLengths.csv", SummarizedCGKArray, fmt='%s', delimiter=',')
+----
+----
+FileToMove = []
+for line in SummarizedCGK:
+    a = line[0]
+    b = []
+    for c in line[1:]:
+        b.append(c[1])
+    d = (max(b))
+    for e in line[1:]:
+        if d == e[1]:
+            f = (a, e[0], e[1])
+            FileToMove.append(f)
+        
+----
+----
+print(FileToMove)
+----
+----
+if not os.path.exists("../20000_Proteins"):
+    os.makedirs("../20000_Proteins")
+----
+----
+for line in FileToMove:
+    orgFile = line[1]
+    newName = line[0]
+    shutil.copy("../New folder/OneByOne/" + orgFile + "_30", "../20000_Proteins/" + newName)
+----
